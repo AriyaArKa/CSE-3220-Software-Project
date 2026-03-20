@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Hexashop - Cart</title>
+
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/font-awesome.css}">
+    <link rel="stylesheet" th:href="@{/css/templatemo-hexashop.css}">
+</head>
+<body>
+<header class="header-area header-sticky">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <nav class="main-nav">
+                    <a th:href="@{/}" class="logo">
+                        <img th:src="@{/images/logo.png}" alt="Hexashop logo">
+                    </a>
+                    <ul class="nav">
+                        <li><a th:href="@{/}">Home</a></li>
+                        <li><a th:href="@{/products}">Products</a></li>
+                        <li><a th:href="@{/about}">About</a></li>
+                        <li><a th:href="@{/contact}">Contact</a></li>
+                        <li>
+                            <a th:href="@{/cart}" class="active"><i class="fa fa-shopping-cart"></i> <span th:text="${cartItemCount}">0</span></a>
+                        </li>
+                        <li class="submenu">
+                            <a href="javascript:;"><i class="fa fa-user"></i></a>
+                            <ul>
+                                <li sec:authorize="!isAuthenticated()"><a th:href="@{/login}">Login</a></li>
+                                <li sec:authorize="!isAuthenticated()"><a th:href="@{/register}">Register</a></li>
+                                <li sec:authorize="isAuthenticated()"><a th:href="@{/dashboard}">Dashboard</a></li>
+                                <li sec:authorize="hasAnyRole('BUYER','SELLER','ADMIN')"><a th:href="@{/orders}">My Orders</a></li>
+                                <li sec:authorize="isAuthenticated()">
+                                    <form th:action="@{/logout}" method="post" style="display:inline; margin:0;">
+                                        <button type="submit" class="btn btn-link" style="padding:0; color:#2a2a2a; text-decoration:none;">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <a class="menu-trigger">
+                        <span>Menu</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="page-heading" id="top">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="inner-content">
+                    <h2>Your Shopping Cart</h2>
+                    <span>Review your items and checkout securely.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+                <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+            </div>
+        </div>
+
+        <div class="row" th:if="${!#lists.isEmpty(cartItems)}">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Line Total</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="item : ${cartItems}">
+                            <td>
+                                <a th:href="@{/products/{id}(id=${item.productId})}" th:text="${item.name}">Product</a>
+                            </td>
+                            <td th:text="${'$' + #numbers.formatDecimal(item.unitPrice, 1, 2)}">$0.00</td>
+                            <td>
+                                <form th:action="@{/cart/update}" method="post" class="d-flex" style="gap:8px;">
+                                    <input type="hidden" name="productId" th:value="${item.productId}">
+                                    <input type="number" class="form-control" name="quantity" min="1" th:value="${item.quantity}">
+                                    <button type="submit" class="btn btn-outline-dark btn-sm">Update</button>
+                                </form>
+                            </td>
+                            <td th:text="${'$' + #numbers.formatDecimal(item.lineTotal, 1, 2)}">$0.00</td>
+                            <td>
+                                <form th:action="@{/cart/remove}" method="post">
+                                    <input type="hidden" name="productId" th:value="${item.productId}">
+                                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-lg-12 text-end">
+                <h4>Total: <span th:text="${'$' + #numbers.formatDecimal(cartTotal, 1, 2)}">$0.00</span></h4>
+                <div sec:authorize="isAuthenticated()">
+                    <form th:action="@{/cart/checkout}" method="post">
+                        <button type="submit" class="btn btn-dark">Checkout</button>
+                    </form>
+                    <small class="text-muted d-block mt-2">Checkout creates an order for the signed-in account.</small>
+                </div>
+                <div sec:authorize="!isAuthenticated()" class="mt-2">
+                    <a th:href="@{/login}" class="btn btn-dark">Login to Checkout</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" th:if="${#lists.isEmpty(cartItems)}">
+            <div class="col-lg-12 text-center">
+                <p>Your cart is empty.</p>
+                <a th:href="@{/products}" class="btn btn-dark">Continue Shopping</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script th:src="@{/js/jquery-2.1.0.min.js}"></script>
+<script th:src="@{/js/popper.js}"></script>
+<script th:src="@{/js/bootstrap.min.js}"></script>
+<script th:src="@{/js/custom.js}"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<div th:fragment="head(title)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:100,200,300,400,500,600,700,800,900&display=swap" rel="stylesheet">
+    <title th:text="${title}">Hexashop</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/font-awesome.css}">
+    <link rel="stylesheet" th:href="@{/css/templatemo-hexashop.css}">
+    <link rel="stylesheet" th:href="@{/css/owl-carousel.css}">
+    <link rel="stylesheet" th:href="@{/css/lightbox.css}">
+</div>
+
+<header class="header-area header-sticky" th:fragment="header">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <nav class="main-nav">
+                    <a th:href="@{/}" class="logo">
+                        <img th:src="@{/images/logo.png}" alt="Hexashop logo">
+                    </a>
+                    <ul class="nav">
+                        <li sec:authorize="!hasRole('ADMIN')"><a th:href="@{/}">Home</a></li>
+                        <li sec:authorize="!hasRole('ADMIN')"><a th:href="@{/products}">Products</a></li>
+                        <li sec:authorize="!hasRole('ADMIN')"><a th:href="@{/about}">About</a></li>
+                        <li sec:authorize="!hasRole('ADMIN')"><a th:href="@{/contact}">Contact</a></li>
+                        <li sec:authorize="!hasRole('ADMIN')">
+                            <a th:href="@{/cart}">
+                                <i class="fa fa-shopping-cart"></i>
+                                <span th:text="${cartItemCount}">0</span>
+                            </a>
+                        </li>
+                        <li class="submenu">
+                            <a href="javascript:;"><i class="fa fa-user"></i></a>
+                            <ul>
+                                <li sec:authorize="!isAuthenticated()"><a th:href="@{/login}">Login</a></li>
+                                <li sec:authorize="!isAuthenticated()"><a th:href="@{/register}">Register</a></li>
+                                <li sec:authorize="isAuthenticated()"><a th:href="@{/dashboard}">Dashboard</a></li>
+                                <li sec:authorize="hasAnyRole('BUYER','SELLER')"><a th:href="@{/orders}">My Orders</a></li>
+                                <li sec:authorize="isAuthenticated()">
+                                    <form th:action="@{/logout}" method="post" style="display:inline; margin:0;">
+                                        <button type="submit" class="btn btn-link" style="padding:0; color:#2a2a2a; text-decoration:none;">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <a class="menu-trigger"><span>Menu</span></a>
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+<footer th:fragment="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="under-footer">
+                    <p>Hexashop eCommerce platform with Spring Boot, Thymeleaf, PostgreSQL, and role-based security.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<div th:fragment="scripts">
+    <script th:src="@{/js/jquery-2.1.0.min.js}"></script>
+    <script th:src="@{/js/popper.js}"></script>
+    <script th:src="@{/js/bootstrap.min.js}"></script>
+    <script th:src="@{/js/owl-carousel.js}"></script>
+    <script th:src="@{/js/accordions.js}"></script>
+    <script th:src="@{/js/datepicker.js}"></script>
+    <script th:src="@{/js/scrollreveal.min.js}"></script>
+    <script th:src="@{/js/waypoints.min.js}"></script>
+    <script th:src="@{/js/jquery.counterup.min.js}"></script>
+    <script th:src="@{/js/imgfix.min.js}"></script>
+    <script th:src="@{/js/slick.js}"></script>
+    <script th:src="@{/js/lightbox.js}"></script>
+    <script th:src="@{/js/isotope.js}"></script>
+    <script th:src="@{/js/custom.js}"></script>
+</div>
+</body>
+</html>

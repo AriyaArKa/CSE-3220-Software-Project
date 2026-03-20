@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <th:block
+      th:replace="~{fragments/layout :: head('Seller Dashboard - Hexashop')}"
+    ></th:block>
+  </head>
+  <body>
+    <th:block th:replace="~{fragments/layout :: header}"></th:block>
+
+    <section class="section" style="margin-top: 110px">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Seller Dashboard</h2>
+          <span
+            >Manage your product catalog with create and delete controls</span
+          >
+        </div>
+
+        <div
+          th:if="${successMessage}"
+          class="alert alert-success"
+          th:text="${successMessage}"
+        ></div>
+        <div
+          th:if="${errorMessage}"
+          class="alert alert-danger"
+          th:text="${errorMessage}"
+        ></div>
+
+        <div class="card mb-4">
+          <div class="card-header"><strong>Add New Product</strong></div>
+          <div class="card-body">
+            <form
+              th:action="@{/seller/products}"
+              th:object="${productRequest}"
+              method="post"
+              enctype="multipart/form-data"
+            >
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label>Name</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    th:field="*{name}"
+                    placeholder="Product name"
+                    required
+                  />
+                  <small
+                    class="text-danger"
+                    th:if="${#fields.hasErrors('name')}"
+                    th:errors="*{name}"
+                  ></small>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <label>Price</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    class="form-control"
+                    th:field="*{price}"
+                    required
+                  />
+                  <small
+                    class="text-danger"
+                    th:if="${#fields.hasErrors('price')}"
+                    th:errors="*{price}"
+                  ></small>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <label>Stock</label>
+                  <input
+                    type="number"
+                    min="0"
+                    class="form-control"
+                    th:field="*{stock}"
+                    required
+                  />
+                  <small
+                    class="text-danger"
+                    th:if="${#fields.hasErrors('stock')}"
+                    th:errors="*{stock}"
+                  ></small>
+                </div>
+                <div class="col-md-12 mb-3">
+                  <label>Description</label>
+                  <textarea
+                    class="form-control"
+                    th:field="*{description}"
+                    rows="3"
+                    placeholder="Product description"
+                  ></textarea>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label>Upload Image From Device (optional)</label>
+                  <input
+                    type="file"
+                    class="form-control"
+                    name="imageFile"
+                    accept="image/*"
+                  />
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label>Image URL (optional)</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    th:field="*{imageUrl}"
+                    placeholder="/images/men-01.jpg or external URL"
+                  />
+                </div>
+                <div class="col-md-12 mb-2">
+                  <small class="text-muted"
+                    >If both upload and URL are provided, uploaded image will be
+                    used.</small
+                  >
+                </div>
+              </div>
+              <button type="submit" class="btn btn-dark">Add Product</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="product : ${products}">
+                <td th:text="${product.id}"></td>
+                <td>
+                  <img
+                    th:src="${product.imageUrl} ?: @{/images/men-01.jpg}"
+                    alt="product"
+                    style="max-width: 64px"
+                  />
+                </td>
+                <td th:text="${product.name}"></td>
+                <td th:text="${product.price}"></td>
+                <td th:text="${product.stock}"></td>
+                <td>
+                  <div style="display: flex; gap: 8px; align-items: center">
+                    <form
+                      th:action="@{/seller/products/{id}/restock(id=${product.id})}"
+                      method="post"
+                      style="margin: 0"
+                    >
+                      <input type="hidden" name="amount" value="1" />
+                      <button type="submit" class="btn btn-success btn-sm">
+                        + Restock
+                      </button>
+                    </form>
+                    <form
+                      th:action="@{/seller/products/{id}/delete(id=${product.id})}"
+                      method="post"
+                      style="margin: 0"
+                      onsubmit="return confirm('Delete this product?');"
+                    >
+                      <button type="submit" class="btn btn-danger btn-sm">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <tr th:if="${#lists.isEmpty(products)}">
+                <td colspan="6" class="text-center">
+                  No products yet. Add your first product above.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card mb-4" style="margin-top: 28px">
+          <div class="card-header">
+            <strong>Pending Orders To Clear</strong>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Buyer</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Update</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:each="order : ${pendingOrders}">
+                    <td th:text="${order.id}"></td>
+                    <td th:text="${order.buyerEmail}"></td>
+                    <td
+                      th:text="${'$' + #numbers.formatDecimal(order.totalAmount, 1, 2)}"
+                    ></td>
+                    <td th:text="${order.status}"></td>
+                    <td>
+                      <form
+                        th:action="@{/seller/orders/{id}/status(id=${order.id})}"
+                        method="post"
+                        class="form-inline"
+                      >
+                        <select
+                          name="status"
+                          class="custom-select custom-select-sm mr-2"
+                        >
+                          <option
+                            th:each="st : ${orderStatuses}"
+                            th:value="${st}"
+                            th:text="${st}"
+                          ></option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-dark">
+                          Apply
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                  <tr th:if="${#lists.isEmpty(pendingOrders)}">
+                    <td colspan="5" class="text-center">
+                      No pending orders for your products.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <th:block th:replace="~{fragments/layout :: footer}"></th:block>
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+  </body>
+</html>

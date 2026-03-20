@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <th:block
+      th:replace="~{fragments/layout :: head('Buyer Dashboard - Hexashop')}"
+    ></th:block>
+    <link rel="stylesheet" th:href="@{/css/cart-notice.css}" />
+  </head>
+  <body>
+    <th:block th:replace="~{fragments/layout :: header}"></th:block>
+
+    <div
+      id="cartNotice"
+      class="cart-notice"
+      th:attr="data-initial-success=${successMessage},data-initial-error=${errorMessage}"
+    >
+      <i class="fa fa-check-circle"></i>
+      <span data-cart-notice-text>Item added to cart.</span>
+      <button type="button" aria-label="Close" data-cart-notice-close>
+        &times;
+      </button>
+    </div>
+
+    <section class="section" style="margin-top: 110px">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Buyer Dashboard</h2>
+          <span>Browse products and track your orders</span>
+        </div>
+        <div class="main-border-button mb-4">
+          <a th:href="@{/orders}">View My Orders</a>
+        </div>
+
+        <div class="row" th:if="${!#lists.isEmpty(products)}">
+          <div class="col-lg-4" th:each="product : ${products}">
+            <div class="item">
+              <div class="thumb has-stock-overlay">
+                <a th:href="@{/products/{id}(id=${product.id})}">
+                  <img
+                    th:src="${#strings.isEmpty(product.imageUrl)} ? @{/images/men-01.jpg} : ${product.imageUrl}"
+                    th:alt="${product.name}"
+                    th:classappend="${product.stock != null and product.stock <= 0} ? ' out-of-stock-image' : ''"
+                  />
+                </a>
+                <div
+                  class="out-of-stock-overlay"
+                  th:if="${product.stock != null and product.stock <= 0}"
+                >
+                  Out of Stock
+                </div>
+              </div>
+
+              <div class="down-content">
+                <h4>
+                  <a
+                    th:href="@{/products/{id}(id=${product.id})}"
+                    th:text="${product.name}"
+                    >Product</a
+                  >
+                </h4>
+                <span
+                  th:text="${'$' + #numbers.formatDecimal(product.price, 1, 2)}"
+                  >$0.00</span
+                >
+
+                <div
+                  class="product-actions"
+                  style="margin-top: 15px; display: flex; gap: 10px"
+                >
+                  <a
+                    th:href="@{/products/{id}(id=${product.id})}"
+                    class="action-btn"
+                    style="
+                      flex: 1;
+                      text-align: center;
+                      padding: 10px 12px;
+                      border: 1px solid #ddd;
+                      border-radius: 6px;
+                      text-decoration: none;
+                      color: #222;
+                      background: #f8f8f8;
+                    "
+                  >
+                    <i class="fa fa-eye"></i> View
+                  </a>
+
+                  <form
+                    th:action="@{/cart/add}"
+                    method="post"
+                    style="flex: 1; margin: 0"
+                  >
+                    <input
+                      type="hidden"
+                      name="productId"
+                      th:value="${product.id}"
+                    />
+                    <input type="hidden" name="quantity" value="1" />
+                    <button
+                      type="submit"
+                      class="action-btn"
+                      th:disabled="${product.stock != null and product.stock <= 0}"
+                      th:styleappend="${product.stock != null and product.stock <= 0} ? 'opacity:0.65;cursor:not-allowed;' : ''"
+                      style="
+                        width: 100%;
+                        padding: 10px 12px;
+                        border: 1px solid #ddd;
+                        border-radius: 6px;
+                        background: #222;
+                        color: white;
+                        cursor: pointer;
+                      "
+                    >
+                      <i class="fa fa-shopping-cart"></i> Add to Cart
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row" th:if="${#lists.isEmpty(products)}">
+          <div class="col-lg-12 text-center">
+            <p>No products available right now.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <th:block th:replace="~{fragments/layout :: footer}"></th:block>
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+    <script th:src="@{/js/cart-ajax.js}"></script>
+  </body>
+</html>

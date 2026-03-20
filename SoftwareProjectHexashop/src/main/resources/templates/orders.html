@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/layout :: head('My Orders - Hexashop')}"></th:block>
+</head>
+<body>
+<th:block th:replace="~{fragments/layout :: header}"></th:block>
+
+<section class="section" style="margin-top: 110px;">
+    <div class="container">
+        <div class="section-heading">
+            <h2>My Orders</h2>
+            <span>Track all your orders in one place</span>
+        </div>
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th>Date</th>
+                    <th>Items</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="order : ${orders}">
+                    <td th:text="${order.id}"></td>
+                    <td th:text="${order.status}"></td>
+                    <td th:text="${order.totalAmount}"></td>
+                    <td th:text="${#temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+                    <td>
+                        <ul>
+                            <li th:each="item : ${order.items}"
+                                th:text="${item.productName + ' x ' + item.quantity}"></li>
+                        </ul>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
