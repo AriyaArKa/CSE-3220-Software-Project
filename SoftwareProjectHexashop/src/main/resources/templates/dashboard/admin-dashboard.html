@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/layout :: head('Admin Dashboard - Hexashop')}"></th:block>
+    <style>
+        .admin-shell {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        .admin-sidebar {
+            width: 280px;
+            position: sticky;
+            top: 120px;
+            flex-shrink: 0;
+        }
+
+        .admin-sidebar .card-header {
+            background: #2a2a2a;
+            color: #fff;
+        }
+
+        .admin-sidebar a {
+            color: #2a2a2a;
+            font-weight: 600;
+            display: block;
+            padding: 8px 10px;
+            border-radius: 6px;
+        }
+
+        .admin-sidebar a:hover {
+            background: #f5f5f5;
+        }
+
+        .admin-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .admin-card {
+            border: 1px solid #ececec;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .admin-card .card-header {
+            background: #fafafa;
+            border-bottom: 1px solid #ececec;
+        }
+
+        @media (max-width: 991px) {
+            .admin-shell {
+                display: block;
+            }
+
+            .admin-sidebar {
+                width: 100%;
+                position: static;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<th:block th:replace="~{fragments/layout :: header}"></th:block>
+
+<section class="section" style="margin-top: 110px;">
+    <div class="container-fluid px-4">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="admin-shell">
+            <aside class="admin-sidebar">
+                <div class="card admin-card">
+                    <div class="card-header"><strong>Admin Panel</strong></div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><a href="#overview">Overview</a></li>
+                            <li class="mb-2"><a href="#seller-mgmt">Seller Management</a></li>
+                            <li class="mb-2"><a href="#seller-approvals">Seller Approvals</a></li>
+                            <li class="mb-2"><a href="#pending-orders">Pending Checkout Orders</a></li>
+                            <li class="mb-2"><a href="#buyer-list">Buyer List</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="admin-content">
+                <div id="overview" class="row mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="card admin-card text-center p-3">
+                            <h6>Total Users</h6>
+                            <h3 th:text="${#lists.size(users)}">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card admin-card text-center p-3">
+                            <h6>Total Sellers</h6>
+                            <h3 th:text="${#lists.size(sellers)}">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card admin-card text-center p-3">
+                            <h6>Total Buyers</h6>
+                            <h3 th:text="${#lists.size(buyers)}">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card admin-card text-center p-3">
+                            <h6>Pending Orders</h6>
+                            <h3 th:text="${#lists.size(pendingOrders)}">0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="seller-mgmt" class="card admin-card mb-4">
+                    <div class="card-header"><strong>Seller Management</strong></div>
+                    <div class="card-body">
+                        <form th:action="@{/admin/sellers}" method="post" class="row mb-4">
+                            <div class="col-md-4 mb-2">
+                                <input type="text" class="form-control" name="fullName" placeholder="Seller full name" required>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <input type="email" class="form-control" name="email" placeholder="Seller email" required>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <input type="password" class="form-control" name="password" placeholder="Temp password" required>
+                            </div>
+                            <div class="col-md-1 mb-2">
+                                <button type="submit" class="btn btn-dark w-100">Add</button>
+                            </div>
+                        </form>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="seller : ${sellers}">
+                                    <td th:text="${seller.id}"></td>
+                                    <td th:text="${seller.fullName}"></td>
+                                    <td th:text="${seller.email}"></td>
+                                    <td>
+                                        <form th:action="@{/admin/sellers/{id}/remove(id=${seller.id})}" method="post" onsubmit="return confirm('Remove seller role from this user?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Remove Seller Role</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(sellers)}">
+                                    <td colspan="4" class="text-center">No sellers found.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="seller-approvals" class="card admin-card mb-4">
+                    <div class="card-header"><strong>Pending Seller Approvals</strong></div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="seller : ${pendingSellers}">
+                                    <td th:text="${seller.id}"></td>
+                                    <td th:text="${seller.fullName}"></td>
+                                    <td th:text="${seller.email}"></td>
+                                    <td>
+                                        <form th:action="@{/admin/sellers/{id}/approve(id=${seller.id})}" method="post">
+                                            <button type="submit" class="btn btn-sm btn-success">Approve Seller</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(pendingSellers)}">
+                                    <td colspan="4" class="text-center">No pending seller approvals.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pending-orders" class="card admin-card mb-4">
+                    <div class="card-header"><strong>Pending Orders To Clear</strong></div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Buyer</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Update</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="order : ${pendingOrders}">
+                                    <td th:text="${order.id}"></td>
+                                    <td th:text="${order.buyerEmail}"></td>
+                                    <td th:text="${'$' + #numbers.formatDecimal(order.totalAmount, 1, 2)}"></td>
+                                    <td th:text="${order.status}"></td>
+                                    <td>
+                                        <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post" class="form-inline">
+                                            <select name="status" class="custom-select custom-select-sm mr-2">
+                                                <option th:each="st : ${orderStatuses}" th:value="${st}" th:text="${st}"></option>
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-dark">Apply</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(pendingOrders)}">
+                                    <td colspan="5" class="text-center">No pending orders.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="buyer-list" class="card admin-card mb-4">
+                    <div class="card-header"><strong>Buyer List</strong></div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="buyer : ${buyers}">
+                                    <td th:text="${buyer.id}"></td>
+                                    <td th:text="${buyer.fullName}"></td>
+                                    <td th:text="${buyer.email}"></td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(buyers)}">
+                                    <td colspan="3" class="text-center">No buyers found.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="product-moderation" class="card admin-card">
+                    <div class="card-header"><strong>Product Moderation</strong></div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Seller</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="product : ${products}">
+                                    <td th:text="${product.id}"></td>
+                                    <td th:text="${product.name}"></td>
+                                    <td th:text="${product.sellerEmail}"></td>
+                                    <td th:text="${'$' + #numbers.formatDecimal(product.price, 1, 2)}"></td>
+                                    <td th:text="${product.stock}"></td>
+                                    <td>
+                                        <form th:action="@{/admin/products/{id}/delete(id=${product.id})}" method="post" onsubmit="return confirm('Delete this product?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(products)}">
+                                    <td colspan="6" class="text-center">No products found.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

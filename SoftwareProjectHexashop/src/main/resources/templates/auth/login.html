@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/layout :: head('Login - Hexashop')}"></th:block>
+</head>
+<body>
+<th:block th:replace="~{fragments/layout :: header}"></th:block>
+
+<section class="section" style="margin-top: 110px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="section-heading text-center">
+                    <h2>Login</h2>
+                    <span>Access your buyer, seller, or admin dashboard</span>
+                </div>
+                <div class="card p-4">
+                    <div th:if="${param.error}" class="alert alert-danger">Invalid email or password.</div>
+                    <div th:if="${param.logout}" class="alert alert-success">You have logged out successfully.</div>
+                    <div th:if="${param.registered}" class="alert alert-success">Registration successful. Please login.</div>
+                    <div th:if="${param.pendingApproval}" class="alert alert-info">Seller account created. Please wait for admin approval before login.</div>
+                    <form th:action="@{/login}" method="post">
+                        <div class="form-group mb-3">
+                            <label>Email</label>
+                            <input type="email" name="username" class="form-control" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label>Password</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-dark w-100">Login</button>
+                    </form>
+                    <p class="mt-3 text-center">No account? <a th:href="@{/register}">Create one</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/layout :: head('Register - Hexashop')}"></th:block>
+</head>
+<body>
+<th:block th:replace="~{fragments/layout :: header}"></th:block>
+
+<section class="section" style="margin-top: 110px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <div class="section-heading text-center">
+                    <h2>Create Account</h2>
+                    <span>Register as Buyer or Seller</span>
+                </div>
+                <div class="card p-4">
+                    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+                    <div class="alert alert-info">Seller accounts require admin approval before dashboard access.</div>
+                    <form th:action="@{/register}" th:object="${registerRequest}" method="post">
+                        <div class="form-group mb-3">
+                            <label>Full Name</label>
+                            <input type="text" th:field="*{fullName}" class="form-control" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label>Email</label>
+                            <input type="email" th:field="*{email}" class="form-control" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label>Password</label>
+                            <input type="password" th:field="*{password}" class="form-control" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label>Role</label>
+                            <select th:field="*{role}" class="form-control">
+                                <option value="BUYER">Buyer</option>
+                                <option value="SELLER">Seller</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-dark w-100">Register</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<th:block th:replace="~{fragments/layout :: footer}"></th:block>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
