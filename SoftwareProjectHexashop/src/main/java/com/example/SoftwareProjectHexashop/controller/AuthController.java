@@ -1,17 +1,19 @@
 package com.example.SoftwareProjectHexashop.controller;
 
-import com.example.SoftwareProjectHexashop.dto.RegisterRequest;
-import com.example.SoftwareProjectHexashop.entity.RoleName;
-import com.example.SoftwareProjectHexashop.entity.User;
-import com.example.SoftwareProjectHexashop.service.UserService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+
+import com.example.SoftwareProjectHexashop.dto.RegisterRequest;
+import com.example.SoftwareProjectHexashop.entity.RoleName;
+import com.example.SoftwareProjectHexashop.entity.User;
+import com.example.SoftwareProjectHexashop.service.UserService;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequiredArgsConstructor
