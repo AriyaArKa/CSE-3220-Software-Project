@@ -62,11 +62,12 @@ class ApplicationContextIntegrationTest {
                 .apply(springSecurity())
                 .build();
 
-        orderItemRepository.deleteAll();
-        orderRepository.deleteAll();
-        productRepository.deleteAll();
-        userRepository.deleteAll();
-        roleRepository.deleteAll();
+        orderItemRepository.deleteAllInBatch();
+        orderRepository.deleteAllInBatch();
+        productRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
+        roleRepository.deleteAllInBatch();
+        roleRepository.flush();
 
         Role sellerRole = roleRepository.save(Role.builder().name(RoleName.SELLER).build());
 

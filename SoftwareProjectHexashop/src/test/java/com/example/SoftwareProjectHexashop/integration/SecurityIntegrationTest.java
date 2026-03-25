@@ -62,11 +62,12 @@ class SecurityIntegrationTest {
                 .apply(springSecurity())
                 .build();
 
-        orderItemRepository.deleteAll();
-        orderRepository.deleteAll();
-        productRepository.deleteAll();
-        userRepository.deleteAll();
-        roleRepository.deleteAll();
+        orderItemRepository.deleteAllInBatch();
+        orderRepository.deleteAllInBatch();
+        productRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
+        roleRepository.deleteAllInBatch();
+        roleRepository.flush();
 
         Role buyerRole = roleRepository.save(Role.builder().name(RoleName.BUYER).build());
         Role sellerRole = roleRepository.save(Role.builder().name(RoleName.SELLER).build());
