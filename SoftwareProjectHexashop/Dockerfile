@@ -1,8 +1,21 @@
-FROM eclipse-temurin:25-jre
+FROM eclipse-temurin:21-jdk AS build
+WORKDIR /workspace
+
+COPY mvnw mvnw
+COPY .mvn .mvn
+COPY pom.xml pom.xml
+RUN chmod +x mvnw
+
+# Cache dependencies first for faster rebuilds.
+RUN ./mvnw -q -DskipTests dependency:go-offline
+
+COPY src src
+RUN ./mvnw -q -DskipTests clean package
+
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-# Build the jar first with: ./mvnw clean package -DskipTests
-COPY target/*.jar app.jar
+COPY --from=build /workspace/target/*.jar app.jar
 EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
