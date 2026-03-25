@@ -1,5 +1,14 @@
 package com.example.SoftwareProjectHexashop.service;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.SoftwareProjectHexashop.dto.RegisterRequest;
 import com.example.SoftwareProjectHexashop.dto.UserResponse;
 import com.example.SoftwareProjectHexashop.entity.Role;
@@ -8,15 +17,8 @@ import com.example.SoftwareProjectHexashop.entity.User;
 import com.example.SoftwareProjectHexashop.exception.ResourceNotFoundException;
 import com.example.SoftwareProjectHexashop.repository.RoleRepository;
 import com.example.SoftwareProjectHexashop.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
