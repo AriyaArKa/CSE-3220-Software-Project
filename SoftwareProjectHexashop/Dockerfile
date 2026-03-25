@@ -6,7 +6,7 @@ COPY .mvn .mvn
 COPY pom.xml pom.xml
 RUN chmod +x mvnw
 
-# Cache dependencies first for faster rebuilds.
+# Cache dependencies first for faster rebuilds
 RUN ./mvnw -q -DskipTests dependency:go-offline
 
 COPY src src
