@@ -1,29 +1,36 @@
 spring:
   application:
     name: SoftwareProjectHexashop
+
   security:
     user:
       name: ${APP_LOGIN_USER:admin}
       password: ${APP_LOGIN_PASSWORD:admin123}
+
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:cse_3220_SoftwareProjectHexaShop}
-    username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:change_me}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/cse_3220_SoftwareProjectHexaShop}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:arka}
     driver-class-name: org.postgresql.Driver
 
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
 
   thymeleaf:
-    cache: false
+    cache: true
+
+  docker:
+    compose:
+      enabled: false
 
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 app:
-  seed-demo-data: true
+  seed-demo-data: false
