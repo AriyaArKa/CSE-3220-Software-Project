@@ -9,10 +9,10 @@ This document lists all tests currently included in the project and summarizes:
 
 ## Quick Summary
 
-- **Total tests:** 42
+- **Total tests:** 45
 - **Unit tests:** 36
-- **Integration tests:** 6
-- **Main layers covered:** Controller, Service, Application context bootstrap, Security flow
+- **Integration tests:** 9
+- **Main layers covered:** Controller, Service, Application context bootstrap, Security flow, seller/product/order lifecycle flows
 - **Tools used:** JUnit 5, Mockito, Spring Boot Test
 
 ---
@@ -146,13 +146,6 @@ This document lists all tests currently included in the project and summarizes:
 | `roleAwareDashboardRedirectionDefaultsToBuyer()` | Buyer/default role redirects to buyer dashboard | Mocks auth authorities containing `ROLE_BUYER`, asserts redirect  |
 
 ---
-
-## Notes on Scope
-
-- No repository-specific tests (e.g., `@DataJpaTest`) are currently included.
-- Most tests are focused, isolated unit tests with mocked dependencies.
-- Integration coverage includes public-page rendering, security restrictions, and checkout flow.
-
 ---
 
 ## 4) Integration Tests (End-to-End Flow)
@@ -160,7 +153,7 @@ This document lists all tests currently included in the project and summarizes:
 ### Class: `ApplicationContextIntegrationTest`
 
 - **File:** `src/test/java/com/example/SoftwareProjectHexashop/integration/ApplicationContextIntegrationTest.java`
-- **Type:** Integration test (`@SpringBootTest` + `@AutoConfigureMockMvc`)
+- **Type:** Integration test (`@SpringBootTest` + `MockMvc` from `WebApplicationContext`)
 - **Layer:** Web + security config + service/repository wiring
 
 | Test method                                          | What it tests                                                                          | How it tests                                                                                                         |
@@ -170,7 +163,7 @@ This document lists all tests currently included in the project and summarizes:
 ### Class: `CheckoutIntegrationTest`
 
 - **File:** `src/test/java/com/example/SoftwareProjectHexashop/integration/CheckoutIntegrationTest.java`
-- **Type:** Integration test (`@SpringBootTest` + `@AutoConfigureMockMvc`)
+- **Type:** Integration test (`@SpringBootTest` + `MockMvc` from `WebApplicationContext`)
 - **Layer:** Security + Controller + Service + Repository + session/cart flow
 
 | Test method                        | What it tests                                                                        | How it tests                                                                                                                                           |
@@ -180,7 +173,7 @@ This document lists all tests currently included in the project and summarizes:
 ### Class: `SecurityIntegrationTest`
 
 - **File:** `src/test/java/com/example/SoftwareProjectHexashop/integration/SecurityIntegrationTest.java`
-- **Type:** Integration test (`@SpringBootTest` + `@AutoConfigureMockMvc`)
+- **Type:** Integration test (`@SpringBootTest` + `MockMvc` from `WebApplicationContext`)
 - **Layer:** Security (authentication + authorization) with controller endpoints
 
 | Test method                                       | What it tests                                          | How it tests                                                                                                          |
@@ -188,3 +181,33 @@ This document lists all tests currently included in the project and summarizes:
 | `anonymousUserCannotAccessProtectedRoute()`       | Unauthenticated users are blocked from protected pages | Calls `/dashboard` without login and asserts redirect to login                                                        |
 | `roleAwareDashboardRedirectionWorksEndToEnd()`    | Role-aware routing works for BUYER, SELLER, and ADMIN  | Logs in as each role via form login and asserts `/dashboard` redirects to role-specific dashboards                    |
 | `adminApiIsForbiddenForBuyerAndAllowedForAdmin()` | Role restriction is enforced on admin APIs             | Logs in as buyer and admin; asserts buyer receives `403 Forbidden` and admin receives `200 OK` for `/api/admin/users` |
+
+### Class: `SellerLifecycleIntegrationTest`
+
+- **File:** `src/test/java/com/example/SoftwareProjectHexashop/integration/SellerLifecycleIntegrationTest.java`
+- **Type:** Integration test (`@SpringBootTest` + `MockMvc` from `WebApplicationContext`)
+- **Layer:** Auth + dashboard + admin approval + seller product management
+
+| Test method                                      | What it tests                                                                                                                          | How it tests                                                                                                                                                           |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sellerLifecycleRegisterApproveAndCreateProduct()` | Seller lifecycle end-to-end: register (pending), blocked before approval, approved by admin, then product creation succeeds           | Registers seller via `/register`, verifies disabled state and failed login, admin approves via `/admin/sellers/{id}/approve`, seller logs in again and creates product |
+
+### Class: `ProductAvailabilityIntegrationTest`
+
+- **File:** `src/test/java/com/example/SoftwareProjectHexashop/integration/ProductAvailabilityIntegrationTest.java`
+- **Type:** Integration test (`@SpringBootTest` + `MockMvc` from `WebApplicationContext`)
+- **Layer:** Inventory/stock behavior across seller and buyers
+
+| Test method                             | What it tests                                                                                                      | How it tests                                                                                                                                                 |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `productAvailabilityRestockFlowWorks()` | Stock availability flow: product sold out to buyer one, buyer two blocked, seller restocks, buyer two buys       | Buyer one checks out full stock, buyer two checkout fails while out-of-stock, seller restocks via `/seller/products/{id}/restock`, buyer two checkout succeeds |
+
+### Class: `ProductLifecycleIntegrationTest`
+
+- **File:** `src/test/java/com/example/SoftwareProjectHexashop/integration/ProductLifecycleIntegrationTest.java`
+- **Type:** Integration test (`@SpringBootTest` + `MockMvc` from `WebApplicationContext`)
+- **Layer:** Checkout + order history + admin order status management
+
+| Test method                                            | What it tests                                                                                               | How it tests                                                                                                                                 |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `productLifecycleBuyerCheckoutAndAdminDeliversOrder()` | Order lifecycle across roles: buyer checkout creates order, admin marks delivered, buyer sees new status   | Buyer creates order by cart checkout, admin updates status with `/admin/orders/{id}/status`, assertions verify repository state and `/orders` response content |
