@@ -104,14 +104,8 @@ public class CartService {
     public OrderRequest toOrderRequest(HttpSession session) {
         List<OrderItemRequest> orderItems = new ArrayList<>();
         for (Map.Entry<Long, Integer> entry : getCart(session).entrySet()) {
-            OrderItemRequest item = new OrderItemRequest();
-            item.setProductId(entry.getKey());
-            item.setQuantity(entry.getValue());
-            orderItems.add(item);
+            orderItems.add(OrderItemRequest.of(entry.getKey(), entry.getValue()));
         }
-
-        OrderRequest orderRequest = new OrderRequest();
-        orderRequest.setItems(orderItems);
-        return orderRequest;
+        return OrderRequest.of(orderItems);
     }
 }
