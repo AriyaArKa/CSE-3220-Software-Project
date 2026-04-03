@@ -11,4 +11,11 @@ public class OrderRequest {
     @Valid
     @NotEmpty
     private List<OrderItemRequest> items;
+
+    // Factory Pattern: encapsulates construction logic inside the class
+    public static OrderRequest of(List<OrderItemRequest> items) {
+        OrderRequest req = new OrderRequest();
+        req.setItems(items);
+        return req;
+    }
 }
