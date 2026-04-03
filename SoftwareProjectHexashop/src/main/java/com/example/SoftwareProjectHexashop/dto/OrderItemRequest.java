@@ -12,4 +12,12 @@ public class OrderItemRequest {
     @NotNull
     @Min(1)
     private Integer quantity;
+
+    // Factory Pattern: encapsulates construction logic inside the class
+    public static OrderItemRequest of(Long productId, Integer quantity) {
+        OrderItemRequest req = new OrderItemRequest();
+        req.setProductId(productId);
+        req.setQuantity(quantity);
+        return req;
+    }
 }

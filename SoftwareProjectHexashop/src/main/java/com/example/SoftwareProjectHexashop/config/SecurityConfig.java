@@ -13,9 +13,13 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    // Singleton Pattern: one encoder instance for the entire application lifetime
+    private static final PasswordEncoder INSTANCE = new BCryptPasswordEncoder();
+
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return INSTANCE;
     }
 
     @Bean
