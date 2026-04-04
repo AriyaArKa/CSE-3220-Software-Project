@@ -8,8 +8,7 @@ Hexashop is a full-stack mini marketplace built for the CSE-3220 Software Engine
 
 | Item              | Value                                                  |
 | ----------------- | ------------------------------------------------------ |
-| Live URL (Render) | `<RENDER_URL>`                                         |
-| GitHub Repository | `<GITHUB_REPO_URL>`                                    |
+| Live URL (Render) | `https://cse-3220-hexashop-software-project.onrender.com/`                                                                        |
 | Docker Hub Image  | `arkanath55/cse_3220_hexashop_software_project:latest` |
 
 **Seed / Demo Accounts** (created automatically on first boot)
