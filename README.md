@@ -2,24 +2,23 @@
 
 Hexashop is a full-stack mini marketplace built for the CSE-3220 Software Engineering Lab. It is powered by Spring Boot 4, Thymeleaf, PostgreSQL, and Spring Security with three distinct roles — **ADMIN**, **SELLER**, and **BUYER**. The application is fully Dockerized, CI-tested via GitHub Actions, and deployed on Render through an automated delivery pipeline.
 
-
 ---
 
 ## Live Demo & Repository
 
-| Item | Value |
-|------|-------|
-| Live URL (Render) | `<RENDER_URL>` |
-| GitHub Repository | `<GITHUB_REPO_URL>` |
-| Docker Hub Image | `arkanath55/cse_3220_hexashop_software_project:latest` |
+| Item              | Value                                                  |
+| ----------------- | ------------------------------------------------------ |
+| Live URL (Render) | `<RENDER_URL>`                                         |
+| GitHub Repository | `<GITHUB_REPO_URL>`                                    |
+| Docker Hub Image  | `arkanath55/cse_3220_hexashop_software_project:latest` |
 
 **Seed / Demo Accounts** (created automatically on first boot)
 
-| Role | Email | Password |
-|------|-------|----------|
-| ADMIN | `admin@hexashop.com` | `admin123` |
+| Role   | Email                 | Password    |
+| ------ | --------------------- | ----------- |
+| ADMIN  | `admin@hexashop.com`  | `admin123`  |
 | SELLER | `seller@hexashop.com` | `seller123` |
-| BUYER | `buyer@hexashop.com` | `buyer123` |
+| BUYER  | `buyer@hexashop.com`  | `buyer123`  |
 
 > **Note:** Seller accounts registered via the public form are **disabled** until an ADMIN approves them. The demo seller is pre-enabled by the seed initializer.
 
@@ -67,11 +66,11 @@ PENDING → PAID → SHIPPED → DELIVERED
            └──→ CANCELED
 ```
 
-| Transition | Who can trigger |
-|-----------|----------------|
-| Any status change | ADMIN (via dashboard) |
+| Transition                    | Who can trigger                               |
+| ----------------------------- | --------------------------------------------- |
+| Any status change             | ADMIN (via dashboard)                         |
 | PENDING → SHIPPED / DELIVERED | SELLER (for orders containing their products) |
-| PENDING → CANCELED | SELLER (for their relevant orders) |
+| PENDING → CANCELED            | SELLER (for their relevant orders)            |
 
 ---
 
@@ -191,7 +190,7 @@ erDiagram
     }
 
     USERS ||--o{ USER_ROLES : "assigned"
-    ROLES ||--o{ USER_ROLES : "grants"
+    ROLES ||--|{ USER_ROLES : "grants"
     USERS ||--o{ PRODUCTS : "sells (SELLER)"
     USERS ||--o{ ORDERS : "places (BUYER)"
     ORDERS ||--o{ ORDER_ITEMS : "contains"
@@ -200,17 +199,40 @@ erDiagram
 
 **Constraints / Indexes**
 
-| Constraint | Column |
-|-----------|--------|
-| UNIQUE | `users.email` |
-| UNIQUE | `roles.name` |
-| FK | `products.seller_id → users.id` |
-| FK | `orders.buyer_id → users.id` |
-| FK | `order_items.order_id → orders.id` |
-| FK | `order_items.product_id → products.id` |
+| Constraint        | Column                                  |
+| ----------------- | --------------------------------------- |
+| UNIQUE            | `users.email`                           |
+| UNIQUE            | `roles.name`                            |
+| FK                | `products.seller_id → users.id`         |
+| FK                | `orders.buyer_id → users.id`            |
+| FK                | `order_items.order_id → orders.id`      |
+| FK                | `order_items.product_id → products.id`  |
 | Recommended index | `products.seller_id`, `orders.buyer_id` |
 
 > **Note:** The cart is **session-based** (stored in `HttpSession`) and has no corresponding database table. It is converted to an `OrderRequest` at checkout time.
+
+---
+
+## Entities
+
+### Cardinality, Participation, and Degree
+
+| Entity        | Relationship               | Cardinality                                        | Participation | Degree |
+| ------------- | -------------------------- | -------------------------------------------------- | ------------- | ------ |
+| `USERS`       | `USERS` ↔ `USER_ROLES`     | One user can have zero or many `USER_ROLES` rows   | Partial       | Binary |
+| `ROLES`       | `ROLES` ↔ `USER_ROLES`     | One role can have zero or many `USER_ROLES` rows   | Partial       | Binary |
+| `USER_ROLES`  | `USER_ROLES` ↔ `USERS`     | Many `USER_ROLES` rows map to one user             | Total         | Binary |
+| `USER_ROLES`  | `USER_ROLES` ↔ `ROLES`     | Many `USER_ROLES` rows map to one role             | Total         | Binary |
+| `USERS`       | `USERS` ↔ `PRODUCTS`       | One seller user can have zero or many products     | Partial       | Binary |
+| `PRODUCTS`    | `PRODUCTS` ↔ `USERS`       | Many products map to one seller user               | Total         | Binary |
+| `USERS`       | `USERS` ↔ `ORDERS`         | One buyer user can place zero or many orders       | Partial       | Binary |
+| `ORDERS`      | `ORDERS` ↔ `USERS`         | Many orders map to one buyer user                  | Total         | Binary |
+| `ORDERS`      | `ORDERS` ↔ `ORDER_ITEMS`   | One order can contain zero or many order items     | Partial       | Binary |
+| `ORDER_ITEMS` | `ORDER_ITEMS` ↔ `ORDERS`   | Many order items map to one order                  | Total         | Binary |
+| `PRODUCTS`    | `PRODUCTS` ↔ `ORDER_ITEMS` | One product can appear in zero or many order items | Partial       | Binary |
+| `ORDER_ITEMS` | `ORDER_ITEMS` ↔ `PRODUCTS` | Many order items map to one product                | Total         | Binary |
+
+> **Note:** The cart is session-based and is not a database entity, so it is not included in the entity analysis.
 
 ---
 
@@ -276,45 +298,76 @@ flowchart TD
 
 ## Features & Role-Permission Matrix
 
-| Capability | ADMIN | SELLER | BUYER |
-|---|:---:|:---:|:---:|
-| Browse / search products | ✓ | ✓ | ✓ |
-| View product detail | ✓ | ✓ | ✓ |
-| Create products | ✗ | ✓ (own) | ✗ |
-| Update products | ✓ (any) | ✓ (own) | ✗ |
-| Delete products | ✓ (any) | ✓ (own) | ✗ |
-| Restock products | ✓ (any) | ✓ (own) | ✗ |
-| Manage session cart | ✗ | ✗ | ✓ |
-| Checkout (create order) | ✗ | ✗ | ✓ |
-| View own orders as buyer | ✗ | ✗ | ✓ |
-| View all orders | ✓ | ✗ | ✗ |
-| View orders for own products | ✗ | ✓ | ✗ |
-| Update order status (any) | ✓ | ✗ | ✗ |
-| Update order status (own products) | ✗ | ✓ | ✗ |
-| Approve pending sellers | ✓ | ✗ | ✗ |
-| Create seller accounts | ✓ | ✗ | ✗ |
-| Remove seller role from user | ✓ | ✗ | ✗ |
-| View all users (admin API) | ✓ | ✗ | ✗ |
+### Feature List
+
+- Public product browsing (`/`, `/home`, `/products`, `/products/{id}`)
+- Product detail viewing
+- Product search by name (case-insensitive)
+- User registration with role selection (`BUYER` or `SELLER`)
+- Seller self-registration in pending (`enabled = false`) state until admin approval
+- Session-based login and logout with Spring Security
+- Role-aware dashboard redirection (`/dashboard` → admin/seller/buyer dashboard)
+- Admin dashboard for users, pending sellers, orders, and products
+- Seller dashboard for product and order management
+- Buyer dashboard for product and order access
+- Seller product creation
+- Seller product deletion
+- Seller product restocking
+- Ownership enforcement for seller product operations
+- Admin ability to update, delete, and restock any product
+- Session-based cart management (add, update, remove, clear)
+- Checkout flow from cart to persisted `Order` and `OrderItem` records
+- Stock validation and stock decrement during checkout
+- Buyer order creation and order history viewing
+- Seller order viewing for orders related to seller products
+- Seller order status updates for relevant orders only
+- Admin global order status management
+- Admin seller approval workflow
+- Admin direct seller account creation
+- Admin seller-role removal from users
+- Admin APIs for listing users and orders
+- Product REST APIs for listing, viewing, creating, updating, and deleting products
+- Order REST APIs for creating orders and viewing buyer orders
+
+| Capability                         |  ADMIN  | SELLER  | BUYER |
+| ---------------------------------- | :-----: | :-----: | :---: |
+| Browse / search products           |    ✓    |    ✓    |   ✓   |
+| View product detail                |    ✓    |    ✓    |   ✓   |
+| Create products                    |    ✗    | ✓ (own) |   ✗   |
+| Update products                    | ✓ (any) | ✓ (own) |   ✗   |
+| Delete products                    | ✓ (any) | ✓ (own) |   ✗   |
+| Restock products                   | ✓ (any) | ✓ (own) |   ✗   |
+| Manage session cart                |    ✗    |    ✗    |   ✓   |
+| Checkout (create order)            |    ✗    |    ✗    |   ✓   |
+| View own orders as buyer           |    ✗    |    ✗    |   ✓   |
+| View all orders                    |    ✓    |    ✗    |   ✗   |
+| View orders for own products       |    ✗    |    ✓    |   ✗   |
+| Update order status (any)          |    ✓    |    ✗    |   ✗   |
+| Update order status (own products) |    ✗    |    ✓    |   ✗   |
+| Approve pending sellers            |    ✓    |    ✗    |   ✗   |
+| Create seller accounts             |    ✓    |    ✗    |   ✗   |
+| Remove seller role from user       |    ✓    |    ✗    |   ✗   |
+| View all users (admin API)         |    ✓    |    ✗    |   ✗   |
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Language | Java 21 |
-| Framework | Spring Boot 4.0.4 |
-| Web / MVC | Spring Web MVC |
-| UI / Templating | Thymeleaf |
-| Security | Spring Security (session-based form login, BCrypt) |
-| Persistence | Spring Data JPA + Hibernate |
-| Database | PostgreSQL 16 |
-| Validation | Jakarta Bean Validation (Hibernate Validator) |
-| Build | Maven (mvnw wrapper) |
-| Containerization | Docker (multi-stage build), Docker Compose |
-| CI/CD | GitHub Actions → Docker Hub → Render |
-| Testing | JUnit 5, Mockito, Spring MockMvc, @SpringBootTest |
-| Utilities | Lombok |
+| Layer            | Technology                                         |
+| ---------------- | -------------------------------------------------- |
+| Language         | Java 21                                            |
+| Framework        | Spring Boot 4.0.4                                  |
+| Web / MVC        | Spring Web MVC                                     |
+| UI / Templating  | Thymeleaf                                          |
+| Security         | Spring Security (session-based form login, BCrypt) |
+| Persistence      | Spring Data JPA + Hibernate                        |
+| Database         | PostgreSQL 16                                      |
+| Validation       | Jakarta Bean Validation (Hibernate Validator)      |
+| Build            | Maven (mvnw wrapper)                               |
+| Containerization | Docker (multi-stage build), Docker Compose         |
+| CI/CD            | GitHub Actions → Docker Hub → Render               |
+| Testing          | JUnit 5, Mockito, Spring MockMvc, @SpringBootTest  |
+| Utilities        | Lombok                                             |
 
 ---
 
@@ -367,12 +420,11 @@ Authorization is enforced through **two complementary mechanisms**:
 
 Configured via `HttpSecurity.authorizeHttpRequests`. These rules apply to every request before any controller code runs.
 
-| URL Pattern | Access |
-|------------|--------|
-| `/`, `/home`, `/products/**` | Public (no login needed) |
-| `/login`, `/register`, `/error` | Public | 
-| Everything else | `authenticated()` — must be logged in |
-
+| URL Pattern                     | Access                                |
+| ------------------------------- | ------------------------------------- |
+| `/`, `/home`, `/products/**`    | Public (no login needed)              |
+| `/login`, `/register`, `/error` | Public                                |
+| Everything else                 | `authenticated()` — must be logged in |
 
 > Public URL rules allow product browsing without login. Sensitive operations (cart, checkout, dashboards, admin API) are automatically gated because they are not in the permit-all list.
 
@@ -409,19 +461,19 @@ if (!admin && !product.getSeller().getId().equals(actor.getId())) {
 }
 ```
 
-
 ### Seller Approval Workflow
 
 Sellers who self-register through the public form are **created with `enabled = false`**. This means:
+
 - `UserDetails.isEnabled()` returns `false`
 - Spring Security blocks login with a "disabled" error
 - The account is fully created in the database but inaccessible until activated
 - An ADMIN approves them via `POST /admin/sellers/{id}/approve`, which sets `enabled = true`
 
-
 ### Session Logout
 
 `/logout` is handled by Spring Security's default logout filter (configured via `Customizer.withDefaults()`). On POST to `/logout`, it:
+
 1. Invalidates the `HttpSession` (destroys the session-cart as well)
 2. Clears the `SecurityContextHolder`
 3. Deletes the `JSESSIONID` cookie
@@ -431,19 +483,20 @@ Sellers who self-register through the public form are **created with `enabled = 
 
 `GlobalExceptionHandler` (`@ControllerAdvice`) maps exceptions to HTTP status codes for REST endpoints:
 
-| Exception | HTTP Status | Scenario |
-|-----------|------------|---------|
-| `ResourceNotFoundException` | 404 Not Found | Entity not found by ID |
-| `ForbiddenOperationException` | 403 Forbidden | Ownership violation (e.g., editing another seller's product) |
-| `AccessDeniedException` | 403 Forbidden | Spring Security `@PreAuthorize` denied access |
-| `MethodArgumentNotValidException` | 400 Bad Request | Bean validation failed on request body |
-| Unexpected `Exception` | 500 Internal Server Error | Unhandled runtime error |
+| Exception                         | HTTP Status               | Scenario                                                     |
+| --------------------------------- | ------------------------- | ------------------------------------------------------------ |
+| `ResourceNotFoundException`       | 404 Not Found             | Entity not found by ID                                       |
+| `ForbiddenOperationException`     | 403 Forbidden             | Ownership violation (e.g., editing another seller's product) |
+| `AccessDeniedException`           | 403 Forbidden             | Spring Security `@PreAuthorize` denied access                |
+| `MethodArgumentNotValidException` | 400 Bad Request           | Bean validation failed on request body                       |
+| Unexpected `Exception`            | 500 Internal Server Error | Unhandled runtime error                                      |
 
 ---
 
 ## API Endpoints
 
 Base URL:
+
 - Local: `http://localhost:8080`
 - Production: `<RENDER_URL>`
 
@@ -455,42 +508,48 @@ Authentication for REST: session cookie (`JSESSIONID`) from a prior form login t
 ### Auth — Registration & Login
 
 #### `GET /login`
+
 Returns the login page (Thymeleaf HTML).
 
 #### `GET /register`
+
 Returns the registration form (Thymeleaf HTML).
 
 #### `POST /register`
+
 Register a new BUYER or SELLER account via form submission.
 
 **Form body:**
+
 ```
 fullName=Demo Buyer&email=buyer@example.com&password=secret123&role=BUYER
 ```
 
-| Role | Effect |
-|------|--------|
-| `BUYER` | Account enabled immediately; redirects to `/login?registered` |
-| `SELLER` | Account created as disabled; redirects to `/login?pendingApproval` |
-| `ADMIN` | Rejected (`IllegalArgumentException`) — admin accounts cannot be self-registered |
+| Role     | Effect                                                                           |
+| -------- | -------------------------------------------------------------------------------- |
+| `BUYER`  | Account enabled immediately; redirects to `/login?registered`                    |
+| `SELLER` | Account created as disabled; redirects to `/login?pendingApproval`               |
+| `ADMIN`  | Rejected (`IllegalArgumentException`) — admin accounts cannot be self-registered |
 
 ---
 
 ### Products
 
 #### `GET /api/products`
+
 List all products. Optional search by name.
 
 **Query param:** `?q=rice`
 
 **Response `200 OK`:**
+
 ```json
 [
   {
     "id": 1,
     "name": "Basmati Rice",
     "description": "Premium quality long grain rice",
-    "price": 120.00,
+    "price": 120.0,
     "stock": 50,
     "imageUrl": "/uploads/rice.jpg",
     "sellerEmail": "seller@hexashop.com"
@@ -501,15 +560,17 @@ List all products. Optional search by name.
 ---
 
 #### `GET /api/products/{id}`
+
 Get a single product by ID.
 
 **Response `200 OK`:**
+
 ```json
 {
   "id": 1,
   "name": "Basmati Rice",
   "description": "Premium quality long grain rice",
-  "price": 120.00,
+  "price": 120.0,
   "stock": 50,
   "imageUrl": "/uploads/rice.jpg",
   "sellerEmail": "seller@hexashop.com"
@@ -517,6 +578,7 @@ Get a single product by ID.
 ```
 
 **Response `404 Not Found`:**
+
 ```json
 {
   "timestamp": "2026-04-04T10:00:00",
@@ -528,19 +590,20 @@ Get a single product by ID.
 ---
 
 #### `POST /api/products`
+
 Create a new product. Requires `SELLER` or `ADMIN` role.
 
 **Request body:**
+
 ```json
 {
   "name": "Sunflower Oil",
   "description": "Refined sunflower cooking oil",
-  "price": 95.00,
+  "price": 95.0,
   "stock": 30,
   "imageUrl": "https://example.com/oil.jpg"
 }
 ```
-
 
 **Response `401 Unauthorized`** — caller not logged in.
 
@@ -549,14 +612,16 @@ Create a new product. Requires `SELLER` or `ADMIN` role.
 ---
 
 #### `PUT /api/products/{id}`
+
 Update an existing product. SELLER must own the product; ADMIN can update any.
 
 **Request body:**
+
 ```json
 {
   "name": "Sunflower Oil 1L",
   "description": "Updated description",
-  "price": 100.00,
+  "price": 100.0,
   "stock": 25,
   "imageUrl": "https://example.com/oil-updated.jpg"
 }
@@ -564,22 +629,22 @@ Update an existing product. SELLER must own the product; ADMIN can update any.
 
 **Response `403 Forbidden`** (not the owner and not ADMIN)
 
-
 ---
 
 #### `DELETE /api/products/{id}`
+
 Delete a product. SELLER must own the product; ADMIN can delete any.
-
-
 
 ---
 
 ### Orders
 
 #### `POST /api/orders`
+
 Create an order. Requires `BUYER` or `ADMIN` role.
 
 **Request body:**
+
 ```json
 {
   "items": [
@@ -589,8 +654,8 @@ Create an order. Requires `BUYER` or `ADMIN` role.
 }
 ```
 
-
 **Response `500 Internal Server Error`** (insufficient stock):
+
 ```json
 {
   "timestamp": "2026-04-04T10:15:00",
@@ -602,9 +667,11 @@ Create an order. Requires `BUYER` or `ADMIN` role.
 ---
 
 #### `GET /api/orders/my`
+
 Get all orders placed by the authenticated buyer. Requires `BUYER` or `ADMIN`.
 
 **Response `200 OK`:**
+
 ```json
 [
   {
@@ -621,10 +688,10 @@ Get all orders placed by the authenticated buyer. Requires `BUYER` or `ADMIN`.
 ---
 
 #### `GET /api/orders/{id}`
+
 Get a specific order by ID. Requires `BUYER` or `ADMIN`.
 
 **Response `200 OK`:** Same structure as above (single object).
-
 
 ---
 
@@ -633,10 +700,11 @@ Get a specific order by ID. Requires `BUYER` or `ADMIN`.
 All endpoints require the `ADMIN` role. A non-admin caller receives `403 Forbidden`.
 
 #### `GET /api/admin/users`
+
 List all registered users.
 
-
 **Response `403 Forbidden`** (non-ADMIN caller):
+
 ```json
 {
   "timestamp": "2026-04-04T10:00:00",
@@ -648,6 +716,7 @@ List all registered users.
 ---
 
 #### `GET /api/admin/orders`
+
 List all orders in the system (all buyers, all statuses).
 
 **Response `200 OK`:** Array of `OrderResponse` objects — same shape as `/api/orders/my`.
@@ -656,42 +725,42 @@ List all orders in the system (all buyers, all statuses).
 
 ### Dashboard / MVC Endpoints (Thymeleaf Pages)
 
-| Method | URL | Role | Description |
-|--------|-----|------|-------------|
-| `GET` | `/dashboard` | Any authenticated | Role-based redirect dispatcher |
-| `GET` | `/admin/dashboard` | ADMIN | Admin overview page |
-| `GET` | `/seller/dashboard` | SELLER | Seller product/order management |
-| `GET` | `/buyer/dashboard` | BUYER | Buyer order/product view |
-| `GET` | `/orders` | Any authenticated | Buyer order history page |
-| `GET` | `/cart` | Any | Shopping cart page |
-| `POST` | `/cart/add` | Any | Add item to session cart (form or AJAX) |
-| `POST` | `/cart/update` | Any | Update cart item quantity |
-| `POST` | `/cart/remove` | Any | Remove item from cart |
-| `POST` | `/cart/checkout` | Any authenticated | Place order from cart contents |
-| `POST` | `/buyer/orders` | BUYER/ADMIN | Place single-item order directly |
-| `POST` | `/seller/products` | SELLER/ADMIN | Create product (multipart form with image) |
-| `POST` | `/seller/products/{id}/delete` | SELLER/ADMIN | Delete own product |
-| `POST` | `/seller/products/{id}/restock` | SELLER/ADMIN | Increase product stock |
-| `POST` | `/seller/orders/{id}/status` | SELLER/ADMIN | Update order status for own products |
-| `POST` | `/admin/sellers` | ADMIN | Create a new seller account directly |
-| `POST` | `/admin/sellers/{id}/approve` | ADMIN | Enable a pending seller account |
-| `POST` | `/admin/sellers/{id}/remove` | ADMIN | Remove seller role from a user |
-| `POST` | `/admin/orders/{id}/status` | ADMIN | Update any order's status |
-| `POST` | `/admin/products/{id}/delete` | ADMIN | Delete any product |
+| Method | URL                             | Role              | Description                                |
+| ------ | ------------------------------- | ----------------- | ------------------------------------------ |
+| `GET`  | `/dashboard`                    | Any authenticated | Role-based redirect dispatcher             |
+| `GET`  | `/admin/dashboard`              | ADMIN             | Admin overview page                        |
+| `GET`  | `/seller/dashboard`             | SELLER            | Seller product/order management            |
+| `GET`  | `/buyer/dashboard`              | BUYER             | Buyer order/product view                   |
+| `GET`  | `/orders`                       | Any authenticated | Buyer order history page                   |
+| `GET`  | `/cart`                         | Any               | Shopping cart page                         |
+| `POST` | `/cart/add`                     | Any               | Add item to session cart (form or AJAX)    |
+| `POST` | `/cart/update`                  | Any               | Update cart item quantity                  |
+| `POST` | `/cart/remove`                  | Any               | Remove item from cart                      |
+| `POST` | `/cart/checkout`                | Any authenticated | Place order from cart contents             |
+| `POST` | `/buyer/orders`                 | BUYER/ADMIN       | Place single-item order directly           |
+| `POST` | `/seller/products`              | SELLER/ADMIN      | Create product (multipart form with image) |
+| `POST` | `/seller/products/{id}/delete`  | SELLER/ADMIN      | Delete own product                         |
+| `POST` | `/seller/products/{id}/restock` | SELLER/ADMIN      | Increase product stock                     |
+| `POST` | `/seller/orders/{id}/status`    | SELLER/ADMIN      | Update order status for own products       |
+| `POST` | `/admin/sellers`                | ADMIN             | Create a new seller account directly       |
+| `POST` | `/admin/sellers/{id}/approve`   | ADMIN             | Enable a pending seller account            |
+| `POST` | `/admin/sellers/{id}/remove`    | ADMIN             | Remove seller role from a user             |
+| `POST` | `/admin/orders/{id}/status`     | ADMIN             | Update any order's status                  |
+| `POST` | `/admin/products/{id}/delete`   | ADMIN             | Delete any product                         |
 
 ---
 
 ### HTTP Status Code Summary
 
-| Code | Meaning |
-|------|---------|
-| `200 OK` | Successful GET or update |
-| `201 Created` | Successful resource creation (order, product) |
-| `204 No Content` | Successful deletion (no response body) |
-| `400 Bad Request` | Bean validation failed — field errors returned in body |
-| `401 Unauthorized` | Request requires authentication (not logged in) |
-| `403 Forbidden` | Authenticated but insufficient role, or not the resource owner |
-| `404 Not Found` | Requested entity does not exist |
+| Code                        | Meaning                                                         |
+| --------------------------- | --------------------------------------------------------------- |
+| `200 OK`                    | Successful GET or update                                        |
+| `201 Created`               | Successful resource creation (order, product)                   |
+| `204 No Content`            | Successful deletion (no response body)                          |
+| `400 Bad Request`           | Bean validation failed — field errors returned in body          |
+| `401 Unauthorized`          | Request requires authentication (not logged in)                 |
+| `403 Forbidden`             | Authenticated but insufficient role, or not the resource owner  |
+| `404 Not Found`             | Requested entity does not exist                                 |
 | `500 Internal Server Error` | Unhandled runtime error (e.g., insufficient stock during order) |
 
 ---
@@ -709,11 +778,13 @@ List all orders in the system (all buyers, all statuses).
 ### Option A — Run Locally (No Docker)
 
 1. **Create the database:**
+
    ```sql
    CREATE DATABASE cse_3220_SoftwareProjectHexaShop;
    ```
 
 2. **Export environment variables:**
+
    ```bash
    export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/cse_3220_SoftwareProjectHexaShop
    export SPRING_DATASOURCE_USERNAME=postgres
@@ -722,6 +793,7 @@ List all orders in the system (all buyers, all statuses).
    ```
 
 3. **Run:**
+
    ```bash
    cd SoftwareProjectHexashop
    ./mvnw spring-boot:run
@@ -736,6 +808,7 @@ Hibernate auto-creates tables on first run (`ddl-auto: update`). Demo seed data 
 ### Option B — Run with Docker Compose (Recommended)
 
 1. **Create `.env`** inside `SoftwareProjectHexashop/`:
+
    ```env
    POSTGRES_DB=hexashopdb
    POSTGRES_USER=postgres
@@ -751,6 +824,7 @@ Hibernate auto-creates tables on first run (`ddl-auto: update`). Demo seed data 
    ```
 
 2. **Start:**
+
    ```bash
    cd SoftwareProjectHexashop
    docker compose up --build
@@ -800,12 +874,12 @@ The pipeline is defined in [`.github/workflows/hexashop-ci.yml`](.github/workflo
 
 **Triggers:** Every push to any branch and every pull request that touches `SoftwareProjectHexashop/**` or the workflow file.
 
-| Step | Tool |
-|------|------|
-| Checkout repository | `actions/checkout@v4` |
-| Set up JDK 21 (Temurin distribution) | `actions/setup-java@v4` with Maven cache |
-| Build & run all tests | `./mvnw clean verify` |
-| Upload Surefire test reports | `actions/upload-artifact@v4` (always runs, including on failure) |
+| Step                                 | Tool                                                             |
+| ------------------------------------ | ---------------------------------------------------------------- |
+| Checkout repository                  | `actions/checkout@v4`                                            |
+| Set up JDK 21 (Temurin distribution) | `actions/setup-java@v4` with Maven cache                         |
+| Build & run all tests                | `./mvnw clean verify`                                            |
+| Upload Surefire test reports         | `actions/upload-artifact@v4` (always runs, including on failure) |
 
 This job ensures every commit is validated before merging to any branch.
 
@@ -816,16 +890,16 @@ This job ensures every commit is validated before merging to any branch.
 **Triggers:** Push to `main` branch only (not on PRs).
 **Depends on:** `build-and-test` job must succeed.
 
-| Step | Tool |
-|------|------|
-| Checkout repository | `actions/checkout@v4` |
-| Set up JDK 21 + build JAR | `./mvnw clean package -DskipTests` |
-| Set up Docker Buildx | `docker/setup-buildx-action@v3` |
-| Login to Docker Hub | `docker/login-action@v3` using `DOCKERHUB_USERNAME` + `DOCKERHUB_TOKEN` secrets |
-| Extract Docker metadata | `docker/metadata-action@v5` — tags: `latest` and `sha-<short-commit>` |
-| Build & push Docker image | `docker/build-push-action@v6` — multi-stage Dockerfile (JDK build → JRE runtime) |
-| Validate Render hook secret | Bash: checks `RENDER_DEPLOY_HOOK_URL` is set |
-| Trigger Render deployment | `curl -X POST "$RENDER_DEPLOY_HOOK_URL"` — Render pulls the new image and redeploys |
+| Step                        | Tool                                                                                |
+| --------------------------- | ----------------------------------------------------------------------------------- |
+| Checkout repository         | `actions/checkout@v4`                                                               |
+| Set up JDK 21 + build JAR   | `./mvnw clean package -DskipTests`                                                  |
+| Set up Docker Buildx        | `docker/setup-buildx-action@v3`                                                     |
+| Login to Docker Hub         | `docker/login-action@v3` using `DOCKERHUB_USERNAME` + `DOCKERHUB_TOKEN` secrets     |
+| Extract Docker metadata     | `docker/metadata-action@v5` — tags: `latest` and `sha-<short-commit>`               |
+| Build & push Docker image   | `docker/build-push-action@v6` — multi-stage Dockerfile (JDK build → JRE runtime)    |
+| Validate Render hook secret | Bash: checks `RENDER_DEPLOY_HOOK_URL` is set                                        |
+| Trigger Render deployment   | `curl -X POST "$RENDER_DEPLOY_HOOK_URL"` — Render pulls the new image and redeploys |
 
 ### End-to-End Delivery Flow
 
@@ -847,10 +921,10 @@ GitHub Actions: docker-build-and-push
 
 ### Required GitHub Secrets
 
-| Secret | Description |
-|--------|-------------|
-| `DOCKERHUB_USERNAME` | Docker Hub account username |
-| `DOCKERHUB_TOKEN` | Docker Hub access token (create at hub.docker.com → Account Settings → Security) |
+| Secret                   | Description                                                                      |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| `DOCKERHUB_USERNAME`     | Docker Hub account username                                                      |
+| `DOCKERHUB_TOKEN`        | Docker Hub access token (create at hub.docker.com → Account Settings → Security) |
 | `RENDER_DEPLOY_HOOK_URL` | Render service deploy hook URL (from Render dashboard → Settings → Deploy Hooks) |
 
 ---
@@ -863,16 +937,15 @@ Branch protection rules prevent direct pushes to shared branches and enforce qua
 
 Configure at: **GitHub → Repository → Settings → Branches → Add branch protection rule**, pattern: `main`.
 
-| Setting | Recommended Value | Reason |
-|---------|------------------|--------|
-| **Require a pull request before merging** | ✓ Enabled | No direct pushes; all changes go through PR review |
-| **Required number of approvals** | 1 | At least one teammate must review every change |
-| **Dismiss stale approvals when new commits are pushed** | ✓ Enabled | Prevents merging an approval given before new code was added |
-| **Require status checks to pass before merging** | ✓ Enabled | Blocks merge if CI fails |
-| **Required status check** | `Build and Test` | Maps to the `build-and-test` job in `hexashop-ci.yml` |
-| **Require branches to be up to date before merging** | ✓ Enabled | Ensures the PR was tested against the latest `main` |
-| **Do not allow bypassing the above settings** | ✓ Enabled | Even repository admins must follow the rules |
-
+| Setting                                                 | Recommended Value | Reason                                                       |
+| ------------------------------------------------------- | ----------------- | ------------------------------------------------------------ |
+| **Require a pull request before merging**               | ✓ Enabled         | No direct pushes; all changes go through PR review           |
+| **Required number of approvals**                        | 1                 | At least one teammate must review every change               |
+| **Dismiss stale approvals when new commits are pushed** | ✓ Enabled         | Prevents merging an approval given before new code was added |
+| **Require status checks to pass before merging**        | ✓ Enabled         | Blocks merge if CI fails                                     |
+| **Required status check**                               | `Build and Test`  | Maps to the `build-and-test` job in `hexashop-ci.yml`        |
+| **Require branches to be up to date before merging**    | ✓ Enabled         | Ensures the PR was tested against the latest `main`          |
+| **Do not allow bypassing the above settings**           | ✓ Enabled         | Even repository admins must follow the rules                 |
 
 ---
 
@@ -919,23 +992,23 @@ Reports: `target/surefire-reports/`
 
 ### Unit Tests (Service Layer, Mockito)
 
-| Test Class | Coverage |
-|-----------|---------|
-| `UserServiceTest` | Registration, role assignment, seller approval, duplicate email rejection |
-| `ProductServiceTest` | Create, update, delete with ownership and admin-override checks |
-| `OrderServiceTest` | Order creation, stock decrement, status transitions, seller ownership check |
-| `CartServiceTest` | Add/remove/update session cart, stock validation, checkout conversion |
+| Test Class           | Coverage                                                                    |
+| -------------------- | --------------------------------------------------------------------------- |
+| `UserServiceTest`    | Registration, role assignment, seller approval, duplicate email rejection   |
+| `ProductServiceTest` | Create, update, delete with ownership and admin-override checks             |
+| `OrderServiceTest`   | Order creation, stock decrement, status transitions, seller ownership check |
+| `CartServiceTest`    | Add/remove/update session cart, stock validation, checkout conversion       |
 
 ### Integration Tests (`@SpringBootTest`)
 
-| Test Class | Scenario Covered |
-|-----------|-----------------|
-| `ApplicationContextIntegrationTest` | Application context loads; public pages return 200 |
-| `CheckoutIntegrationTest` | Full buyer journey: login → add to cart → checkout → order created |
-| `SecurityIntegrationTest` | Unauthenticated access blocked; role restrictions enforced |
-| `SellerLifecycleIntegrationTest` | Self-register seller (pending) → admin approves → seller creates product |
-| `ProductAvailabilityIntegrationTest` | Out-of-stock blocks purchase; restock re-enables it |
-| `ProductLifecycleIntegrationTest` | Buyer order history visible; admin updates order status |
+| Test Class                           | Scenario Covered                                                         |
+| ------------------------------------ | ------------------------------------------------------------------------ |
+| `ApplicationContextIntegrationTest`  | Application context loads; public pages return 200                       |
+| `CheckoutIntegrationTest`            | Full buyer journey: login → add to cart → checkout → order created       |
+| `SecurityIntegrationTest`            | Unauthenticated access blocked; role restrictions enforced               |
+| `SellerLifecycleIntegrationTest`     | Self-register seller (pending) → admin approves → seller creates product |
+| `ProductAvailabilityIntegrationTest` | Out-of-stock blocks purchase; restock re-enables it                      |
+| `ProductLifecycleIntegrationTest`    | Buyer order history visible; admin updates order status                  |
 
 CI runs all tests on every PR and push via `./mvnw clean verify`.
 
@@ -943,13 +1016,13 @@ CI runs all tests on every PR and push via `./mvnw clean verify`.
 
 ## Troubleshooting
 
-| Problem | Cause | Fix |
-|---------|-------|-----|
-| DB connection fails in Docker | Wrong host name | Use `postgres` (service name) not `localhost`: `jdbc:postgresql://postgres:5432/hexashopdb` |
-| Port 8080 already in use | Another process | Change `PORT` env var or stop the conflicting process |
-| Render deploy succeeds but app crashes | Missing env vars | Check `SPRING_DATASOURCE_URL/USERNAME/PASSWORD` in Render dashboard → Environment |
-| Tests pass locally but fail in CI | Java version mismatch | CI uses Java 21 (Temurin). Verify your local JDK: `java -version` |
-| Seller can't log in after registering | Account is pending approval | Admin must approve at `/admin/dashboard` → Pending Sellers |
-| "Access is denied" on API call | Wrong role or missing session | Log in first via `/login`; check the account has the required role |
-| Docker image build fails on first run | Maven downloading dependencies | Let it complete — `dependency:go-offline` runs first for caching |
-| Cart items disappear unexpectedly | Session expiry | Cart is session-based. Server restart or session timeout clears it. |
+| Problem                                | Cause                          | Fix                                                                                         |
+| -------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------- |
+| DB connection fails in Docker          | Wrong host name                | Use `postgres` (service name) not `localhost`: `jdbc:postgresql://postgres:5432/hexashopdb` |
+| Port 8080 already in use               | Another process                | Change `PORT` env var or stop the conflicting process                                       |
+| Render deploy succeeds but app crashes | Missing env vars               | Check `SPRING_DATASOURCE_URL/USERNAME/PASSWORD` in Render dashboard → Environment           |
+| Tests pass locally but fail in CI      | Java version mismatch          | CI uses Java 21 (Temurin). Verify your local JDK: `java -version`                           |
+| Seller can't log in after registering  | Account is pending approval    | Admin must approve at `/admin/dashboard` → Pending Sellers                                  |
+| "Access is denied" on API call         | Wrong role or missing session  | Log in first via `/login`; check the account has the required role                          |
+| Docker image build fails on first run  | Maven downloading dependencies | Let it complete — `dependency:go-offline` runs first for caching                            |
+| Cart items disappear unexpectedly      | Session expiry                 | Cart is session-based. Server restart or session timeout clears it.                         |
