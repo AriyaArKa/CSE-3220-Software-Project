@@ -190,7 +190,7 @@ erDiagram
     }
 
     USERS ||--o{ USER_ROLES : "assigned"
-    ROLES ||--o{ USER_ROLES : "grants"
+    ROLES ||--|{ USER_ROLES : "grants"
     USERS ||--o{ PRODUCTS : "sells (SELLER)"
     USERS ||--o{ ORDERS : "places (BUYER)"
     ORDERS ||--o{ ORDER_ITEMS : "contains"
@@ -210,6 +210,29 @@ erDiagram
 | Recommended index | `products.seller_id`, `orders.buyer_id` |
 
 > **Note:** The cart is **session-based** (stored in `HttpSession`) and has no corresponding database table. It is converted to an `OrderRequest` at checkout time.
+
+---
+
+## Entities
+
+### Cardinality, Participation, and Degree
+
+| Entity        | Relationship               | Cardinality                                        | Participation | Degree |
+| ------------- | -------------------------- | -------------------------------------------------- | ------------- | ------ |
+| `USERS`       | `USERS` ↔ `USER_ROLES`     | One user can have zero or many `USER_ROLES` rows   | Partial       | Binary |
+| `ROLES`       | `ROLES` ↔ `USER_ROLES`     | One role can have zero or many `USER_ROLES` rows   | Partial       | Binary |
+| `USER_ROLES`  | `USER_ROLES` ↔ `USERS`     | Many `USER_ROLES` rows map to one user             | Total         | Binary |
+| `USER_ROLES`  | `USER_ROLES` ↔ `ROLES`     | Many `USER_ROLES` rows map to one role             | Total         | Binary |
+| `USERS`       | `USERS` ↔ `PRODUCTS`       | One seller user can have zero or many products     | Partial       | Binary |
+| `PRODUCTS`    | `PRODUCTS` ↔ `USERS`       | Many products map to one seller user               | Total         | Binary |
+| `USERS`       | `USERS` ↔ `ORDERS`         | One buyer user can place zero or many orders       | Partial       | Binary |
+| `ORDERS`      | `ORDERS` ↔ `USERS`         | Many orders map to one buyer user                  | Total         | Binary |
+| `ORDERS`      | `ORDERS` ↔ `ORDER_ITEMS`   | One order can contain zero or many order items     | Partial       | Binary |
+| `ORDER_ITEMS` | `ORDER_ITEMS` ↔ `ORDERS`   | Many order items map to one order                  | Total         | Binary |
+| `PRODUCTS`    | `PRODUCTS` ↔ `ORDER_ITEMS` | One product can appear in zero or many order items | Partial       | Binary |
+| `ORDER_ITEMS` | `ORDER_ITEMS` ↔ `PRODUCTS` | Many order items map to one product                | Total         | Binary |
+
+> **Note:** The cart is session-based and is not a database entity, so it is not included in the entity analysis.
 
 ---
 
@@ -274,6 +297,37 @@ flowchart TD
 ---
 
 ## Features & Role-Permission Matrix
+
+### Feature List
+
+- Public product browsing (`/`, `/home`, `/products`, `/products/{id}`)
+- Product detail viewing
+- Product search by name (case-insensitive)
+- User registration with role selection (`BUYER` or `SELLER`)
+- Seller self-registration in pending (`enabled = false`) state until admin approval
+- Session-based login and logout with Spring Security
+- Role-aware dashboard redirection (`/dashboard` → admin/seller/buyer dashboard)
+- Admin dashboard for users, pending sellers, orders, and products
+- Seller dashboard for product and order management
+- Buyer dashboard for product and order access
+- Seller product creation
+- Seller product deletion
+- Seller product restocking
+- Ownership enforcement for seller product operations
+- Admin ability to update, delete, and restock any product
+- Session-based cart management (add, update, remove, clear)
+- Checkout flow from cart to persisted `Order` and `OrderItem` records
+- Stock validation and stock decrement during checkout
+- Buyer order creation and order history viewing
+- Seller order viewing for orders related to seller products
+- Seller order status updates for relevant orders only
+- Admin global order status management
+- Admin seller approval workflow
+- Admin direct seller account creation
+- Admin seller-role removal from users
+- Admin APIs for listing users and orders
+- Product REST APIs for listing, viewing, creating, updating, and deleting products
+- Order REST APIs for creating orders and viewing buyer orders
 
 | Capability                         |  ADMIN  | SELLER  | BUYER |
 | ---------------------------------- | :-----: | :-----: | :---: |
