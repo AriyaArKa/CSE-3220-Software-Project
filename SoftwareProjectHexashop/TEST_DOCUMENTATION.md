@@ -1,11 +1,11 @@
 # Hexashop Test Documentation
 
-This document lists all tests currently included in the project and summarizes:
+This document lists all tests currently included in the project:
 
 - what each test validates,
-- how it validates it (short),
+- how it validates it,
 - test type,
-- and architecture layer.
+- architecture layer.
 
 ## Quick Summary
 
@@ -146,6 +146,7 @@ This document lists all tests currently included in the project and summarizes:
 | `roleAwareDashboardRedirectionDefaultsToBuyer()` | Buyer/default role redirects to buyer dashboard | Mocks auth authorities containing `ROLE_BUYER`, asserts redirect  |
 
 ---
+
 ---
 
 ## 4) Integration Tests (End-to-End Flow)
@@ -188,9 +189,9 @@ This document lists all tests currently included in the project and summarizes:
 - **Type:** Integration test (`@SpringBootTest` + `MockMvc` from `WebApplicationContext`)
 - **Layer:** Auth + dashboard + admin approval + seller product management
 
-| Test method                                      | What it tests                                                                                                                          | How it tests                                                                                                                                                           |
-| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sellerLifecycleRegisterApproveAndCreateProduct()` | Seller lifecycle end-to-end: register (pending), blocked before approval, approved by admin, then product creation succeeds           | Registers seller via `/register`, verifies disabled state and failed login, admin approves via `/admin/sellers/{id}/approve`, seller logs in again and creates product |
+| Test method                                        | What it tests                                                                                                               | How it tests                                                                                                                                                           |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sellerLifecycleRegisterApproveAndCreateProduct()` | Seller lifecycle end-to-end: register (pending), blocked before approval, approved by admin, then product creation succeeds | Registers seller via `/register`, verifies disabled state and failed login, admin approves via `/admin/sellers/{id}/approve`, seller logs in again and creates product |
 
 ### Class: `ProductAvailabilityIntegrationTest`
 
@@ -198,9 +199,9 @@ This document lists all tests currently included in the project and summarizes:
 - **Type:** Integration test (`@SpringBootTest` + `MockMvc` from `WebApplicationContext`)
 - **Layer:** Inventory/stock behavior across seller and buyers
 
-| Test method                             | What it tests                                                                                                      | How it tests                                                                                                                                                 |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `productAvailabilityRestockFlowWorks()` | Stock availability flow: product sold out to buyer one, buyer two blocked, seller restocks, buyer two buys       | Buyer one checks out full stock, buyer two checkout fails while out-of-stock, seller restocks via `/seller/products/{id}/restock`, buyer two checkout succeeds |
+| Test method                             | What it tests                                                                                              | How it tests                                                                                                                                                   |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `productAvailabilityRestockFlowWorks()` | Stock availability flow: product sold out to buyer one, buyer two blocked, seller restocks, buyer two buys | Buyer one checks out full stock, buyer two checkout fails while out-of-stock, seller restocks via `/seller/products/{id}/restock`, buyer two checkout succeeds |
 
 ### Class: `ProductLifecycleIntegrationTest`
 
@@ -208,6 +209,6 @@ This document lists all tests currently included in the project and summarizes:
 - **Type:** Integration test (`@SpringBootTest` + `MockMvc` from `WebApplicationContext`)
 - **Layer:** Checkout + order history + admin order status management
 
-| Test method                                            | What it tests                                                                                               | How it tests                                                                                                                                 |
-| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `productLifecycleBuyerCheckoutAndAdminDeliversOrder()` | Order lifecycle across roles: buyer checkout creates order, admin marks delivered, buyer sees new status   | Buyer creates order by cart checkout, admin updates status with `/admin/orders/{id}/status`, assertions verify repository state and `/orders` response content |
+| Test method                                            | What it tests                                                                                            | How it tests                                                                                                                                                   |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `productLifecycleBuyerCheckoutAndAdminDeliversOrder()` | Order lifecycle across roles: buyer checkout creates order, admin marks delivered, buyer sees new status | Buyer creates order by cart checkout, admin updates status with `/admin/orders/{id}/status`, assertions verify repository state and `/orders` response content |
